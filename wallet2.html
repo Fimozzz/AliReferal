@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ваш рахунок</title>
+    <style>
+        #cookie-notice {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            z-index: 1000;
+        }
+        #cookie-notice button {
+            background-color: #f39c12;
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+    </style>
+    <script>
+        // Функция для установки и получения cookie
+        function setCookie(name, value, days) {
+            var expires = "";
+            if (days) {
+                var date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                expires = "; expires=" + date.toUTCString();
+            }
+            document.cookie = name + "=" + (value || "") + expires + "; path=/";
+        }
+
+        function getCookie(name) {
+            var nameEQ = name + "=";
+            var ca = document.cookie.split(';');
+            for (var i = 0; i < ca.length; i++) {
+                var c = ca[i];
+                while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+
+        // Функция для генерации случайных копеек
+        function getRandomCents() {
+            return (Math.random() * 0.99).toFixed(2);
+        }
+
+        // Функция для генерации случайного увеличения счётчика
+        function getRandomIncrement(days) {
+            if (days % 2 === 0) {
+                // Редкий случай, увеличение на 6-21 грн
+                return (Math.floor(Math.random() * (21 - 6 + 1)) + 6).toFixed(2);
+            } else {
+                // Обычно увеличение на 3-5 грн
+                return (Math.floor(Math.random() * (5 - 3 + 1)) + 3).toFixed(2);
+            }
+        }
+
+        // Функция для инкрементации счётчика
+        function incrementCounter() {
+            var lastVisit = getCookie('lastVisit');
+            var counter = getCookie('counter');
+            var now = new Date();
+            var daysSinceLastVisit = lastVisit ? Math.floor((now - new Date(lastVisit)) / (1000 * 60 * 60 * 24)) : 0;
+
+            if (!counter) {
+                // Начальное значение счётчика с 1.00
+                counter = "1.00";
+                setCookie('counter', counter, 365);
+            }
+
+            if (!lastVisit || new Date(lastVisit).toDateString() !== now.toDateString()) {
+                // Обновление счётчика только если посещение произошло после последнего
+                var increment = parseFloat(getRandomIncrement(daysSinceLastVisit));
+                var currentAmount = parseFloat(counter) + increment;
+                counter = currentAmount.toFixed(2);
+                setCookie('counter', counter, 365);
+                setCookie('lastVisit', now.toUTCString(), 365);
+            }
+
+            document.getElementById('counter').innerText = counter;
+        }
+
+        // Функция для показа уведомления о cookies
+        function showCookieNotice() {
+            var cookieNotice = document.getElementById('cookie-notice');
+            if (!getCookie('cookiesAccepted')) {
+                cookieNotice.style.display = 'block';
+            }
+        }
+
+        // Функция для принятия cookies
+        function acceptCookies() {
+            setCookie('cookiesAccepted', 'true', 365);
+            document.getElementById('cookie-notice').style.display = 'none';
+        }
+
+        window.onload = function() {
+            incrementCounter();
+            showCookieNotice();
+        }
+    </script>
+</head>
+<body>
+    <h1>Ваш рахунок</h1>
+    <p>На вашому рахунку: <span id="counter">1.00</span> грн</p>
+    <p style="font-size: small; color: grey;">
+        сторінка оновиться наступного дня, ви побачите скільки заробили за минулий день, вертайтеся на цю сторінку пізніше
+    </p>
+
+    <!-- Уведомление о cookies -->
+    <div id="cookie-notice">
+        <p>Цей сайт використовує cookies для покращення вашого досвіду. Прийняття cookies важливо для збереження вашого прогресу. Якщо ви не погодитеся, ваш прогрес може бути втрачено через день.</p>
+        <button onclick="acceptCookies()">Прийняти</button>
+    </div>
+</body>
+</html>
